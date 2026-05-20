@@ -264,7 +264,7 @@ BODY block4:
   mesh: block4.OBJ
   collision mesh: block_simple_collision.OBJ
   collision mesh type: CONVEX_HULL
-  mass: 1.0
+  mass: 0.1
   collision margin: 0.0001
   scale: 1.0
   location:
