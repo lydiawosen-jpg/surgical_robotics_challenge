@@ -15,13 +15,13 @@ BODY CameraFrame:
   scale: 1.0
   location:
     position:
-      x: 0.0238510482
-      y: 0.3195584416
-      z: 0.8438282609
+      x: 0.01937
+      y: 0.319558
+      z: 0.843828
     orientation:
-      r: 0.5898108482
-      p: 0.0227536317
-      y: -3.1013171673
+      r: 0.5235987901687622
+      p: 0.0
+      y: -3.1415927410125732
   inertial offset:
     position:
       x: 0
