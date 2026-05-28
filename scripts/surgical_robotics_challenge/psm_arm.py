@@ -273,6 +273,11 @@ class PSM:
         self.base.set_joint_pos(7, jaw_angle)
         self.run_grasp_logic(jaw_angle)
 
+    def get_jaw_angle(self):
+        j6 = self.base.get_joint_pos(6)
+        j7 = self.base.get_joint_pos(7)
+        return (j6 + j7) / 2.0
+
     def measured_cp(self):
         jp = self.measured_jp()
         jp.append(0.0)
