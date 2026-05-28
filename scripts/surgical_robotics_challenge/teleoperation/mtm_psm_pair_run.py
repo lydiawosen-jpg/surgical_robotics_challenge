@@ -60,13 +60,14 @@ from std_msgs.msg import Float64MultiArray
 
 
 class ControllerInterface:
-    def __init__(self, ral, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm):
+    def __init__(self, ral, leader_l, leader_r, psm_arm_l, psm_arm_r, ecm, update_frequency):
         self.counter = 0
         self.leader_1 = leader_l
         self.leader_2 = leader_r
         self.psm_1 = psm_arm_l
         self.psm_2 = psm_arm_r
         self.gui = JointGUI('ECM JP', 4, ["ecm j0", "ecm j1", "ecm j2", "ecm j3"])
+        self.update_dt = 1.0 / update_frequency
 
         self.cmd1_xyz = self.psm_1.T_t_b_home.p
         self.cmd1_rpy = None
@@ -109,7 +110,7 @@ class ControllerInterface:
         twist = self.leader_1.measured_cv() * coordinate_frames.TeleopScale.scale_factor
         self.cmd1_xyz = self.psm_1.T_t_b_home.p
         if not self.leader_1.clutch_button_pressed:
-            delta_t = self._T1_c_b.M * twist.vel
+            delta_t = self._T1_c_b.M * twist.vel * self.update_dt
             self.cmd1_xyz = self.cmd1_xyz + delta_t
             self.psm_1.T_t_b_home.p = self.cmd1_xyz
         if self.leader_1.coag_button_pressed:
@@ -129,7 +130,7 @@ class ControllerInterface:
         twist = self.leader_2.measured_cv() * coordinate_frames.TeleopScale.scale_factor
         self.cmd2_xyz = self.psm_2.T_t_b_home.p
         if not self.leader_2.clutch_button_pressed:
-            delta_t = self._T2_c_b.M * twist.vel
+            delta_t = self._T2_c_b.M * twist.vel * self.update_dt
             self.cmd2_xyz = self.cmd2_xyz + delta_t
             self.psm_2.T_t_b_home.p = self.cmd2_xyz
         if self.leader_2.coag_button_pressed:
@@ -182,6 +183,7 @@ if __name__ == "__main__":
     parser.add_argument('--one', action='store', dest='run_psm_one', help='Control PSM1', default=True)
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
+    parser.add_argument('--update_frequency', action='store', dest='update_frequency', help='Update Frequency', default=200)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
@@ -257,10 +259,10 @@ if __name__ == "__main__":
         leader_r = MTM(simulation_manager.get_ral(), '/MTMR/')
         leader_l.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
         leader_r.set_base_frame(Frame(Rotation.RPY((3.14 - 0.8) / 2, 0, 0), Vector(0, 0, 0)))
-        controller1 = ControllerInterface(simulation_manager.get_ral(), leader_l, leader_r, psm1, psm2, cam)
+        controller1 = ControllerInterface(simulation_manager.get_ral(), leader_l, leader_r, psm1, psm2, cam, update_frequency=int(parsed_args.update_frequency))
         controllers.append(controller1)
 
-        rate = simulation_manager.create_rate(200)
+        rate = simulation_manager.create_rate(int(parsed_args.update_frequency))
 
         while not simulation_manager.is_shutdown():
             try:
