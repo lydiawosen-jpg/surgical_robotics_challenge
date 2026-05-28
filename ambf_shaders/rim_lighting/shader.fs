@@ -97,7 +97,7 @@ void main(void)
 
     // Apply soft shadow
     float shadow = shadow2DProj(shadowMap, gl_TexCoord[1]).a;
-    shaded.rgb *= shadow;
+    // shaded.rgb *= shadow;
 
-    gl_FragColor = shaded;
+    gl_FragColor = vec4(shaded.rgb, shadow);
 }
