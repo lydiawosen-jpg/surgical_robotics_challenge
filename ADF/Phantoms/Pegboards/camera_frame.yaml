@@ -16,10 +16,10 @@ BODY CameraFrame:
   location:
     position:
       x: 0.01937
-      y: 0.319558
-      z: 0.843828
+      y: 0.35456
+      z: 0.90445
     orientation:
-      r: 0.5235987901687622
+      r: 0.6981317007977318
       p: 0.0
       y: -3.1415927410125732
   inertial offset:
