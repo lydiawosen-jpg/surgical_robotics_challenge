@@ -52,8 +52,8 @@ cam common configs:
   # resolution: &cam_common_res { width: 640, height: 480 }
 
 cameraL:
-  namespace: cameras/
-  name: cameraL
+  namespace: stereo/
+  name: left
   location: { x: -0.001, y: 0.0, z: -0.05 }
   look at: { x: 0.0, y: 0.0, z: -1.0 }
   up: { x: 0.0, y: 1.0, z: 0.0 }
@@ -61,7 +61,7 @@ cameraL:
   field view angle: *cam_common_fov 
   monitor: 1
   parent: BODY CameraFrame
-  publish image: True
+  publish image: False
   publish image interval: 5
   publish image resolution: *cam_common_pub_img_res 
   # publish depth: True
@@ -83,7 +83,7 @@ cameraL2:
     path: ../../../ambf_shaders/preprocessing
     vertex: shader.vs
     fragment: shader.fs
-  publish image: True
+  publish image: False
   visible: False
   publish image interval: 5
   publish image resolution: *cam_common_pub_img_res
@@ -93,8 +93,8 @@ cameraL2:
   # multipass: True
 
 cameraR:
-  namespace: cameras/
-  name: cameraR
+  namespace: stereo/
+  name: right
   location: { x: 0.001, y: 0.0, z: -0.05 }
   look at: { x: 0.0, y: 0.0, z: -1.0 }
   up: { x: 0.0, y: 1.0, z: 0.0 }
@@ -102,7 +102,7 @@ cameraR:
   field view angle: *cam_common_fov 
   monitor: 2
   parent: BODY CameraFrame
-  publish image: True
+  publish image: False
   publish image interval: 5
   publish image resolution: *cam_common_pub_img_res
   # publish depth: True
