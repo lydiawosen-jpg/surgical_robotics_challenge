@@ -1,5 +1,5 @@
 # Surgical Robotics Challenge
-For more information about the challenge, visit [Surgical Robotics Challenge 2021-2022](https://surgical-robotics-ai.github.io/surgical-robotics-challenge/challenge-2021.html), [Surgical Robotics Challenge 2023-2024](https://surgical-robotics-ai.github.io/surgical-robotics-challenge-2023/challenge-2023.html), or [Surgical Robotics Challenge ICRA 2026](https://surgical-robotics-ai.github.io/icra-competition-2026/index.html).
+This branch provides specific instructions for the [ICRA 2026 Surgical Robotics Challenge](https://surgical-robotics-ai.github.io/icra-competition-2026/index.html), which implements a peg transfer task using ROS2.
 
 # [Discussions Forum](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions)
 Please check out the [Discussions tab](https://github.com/surgical-robotics-ai/surgical_robotics_challenge/discussions) to ask questions, post suggestions, connect with the community, and stay up to date with the challenge.
@@ -8,7 +8,7 @@ Please check out the [Discussions tab](https://github.com/surgical-robotics-ai/s
 Clone, build, and source `ambf-3.0` using these [instructions](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF).
 
 
-# 2. Clone this repo to your local machine OR use a Dockerfile
+# 2. Clone this repo to your local machine (recommended) OR use a Dockerfile
 
 #### Option 1: (Clone repo to your local machine)
 Please refer to the [README](./scripts/README.md) in the [scripts](./scripts) folder for instructions on installing the Python package for system-wide access.
@@ -20,10 +20,7 @@ https://github.com/surgical-robotics-ai/docker_surgical_robotics_challenge
 
 # 3. Running the simulation
 [Source](https://github.com/WPI-AIM/ambf/wiki/Installing-AMBF#step-3) the ROS workspace containing AMBF, either in every terminal window that interacts with SRC or once in your `.bashrc` file.
-For convenience, we provide several bash (`.sh`) scripts to launch different suturing scenes and setups.
 
- # ROS 1 and ROS 2
-**FOR ROS 1, `roscore` MUST BE RUNNING BEFOREHAND. IT IS NOT REQUIRED FOR ROS 2.**
 Navigate to the `surgical_robotics_challenge` folder, which is `~/surgical_robotics_challenge` if you cloned it in your home directory.
 Run the following in your terminal:
  ```bash
@@ -63,23 +60,15 @@ cd scripts/surgical_robotics_challenge
 python launch_crtk_interface --scene False
 ```
 
-The `scene` argument above is relevant for the suturing environment with entry and exit holes, so it should be disabled (`False`) for other environments.
+The `scene` argument above is relevant for the suturing environment with entry and exit holes, so it should be disabled (`False`) for other environments, including the pegboard used for the ICRA 2026 challenge.
 
 
 # 5. Controlling via Input Devices
-The code in the `scripts` folder allows the dVRK MTMs, Geomagic Touch, or Phantom Omni to control the simulated PSMs.
+The code in the `scripts` folder allows various input devices, including dVRK MTMs, Geomagic Touch, Phantom Omni, and Quest 3, to control the simulated PSMs. The ICRA 2026 challenge uses the Quest 3 hand controllers for teleoperation. The Quest 3 runs a Unity app that sends/receives CRTK-compatible JSON messages via UDP, in the format used by [sawSocketStreamer](https://github.com/jhu-saw/sawSocketStreamer). These are converted to CRTK-compatible ROS2 topics via the `udp_crtk_bridge.py` Python script, which is started by:
 
-With the simulation already running, launch the `dvrk-ros` application for the `dVRK MTMs` or the ROS application for the `Geomagic Touch/Phantom Omni`. You can find the relevant code here:
-
-**a. https://github.com/jhu-dvrk/dvrk-ros** (dvrk-ros)
-
-**b. https://github.com/WPI-AIM/ros_geomagic** (geomagic_touch/phantom_omni)
-
-Then run one of the corresponding Python scripts:
-
-**a. scripts/surgical_robotics_challenge/teleoperation/mtm_multi_psm_control.py** (For MTMs)
-
-**b. scripts/surgical_robotics_challenge/geomagic_multi_psm_control.py** (For Geomagic Touch/Phantom Omni)
+```
+python udp_crtk_bridge.py
+```
 
 Refer to the `README` in the `scripts` folder for further information.
 
