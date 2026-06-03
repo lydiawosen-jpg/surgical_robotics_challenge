@@ -45,9 +45,9 @@
 
 import PyKDL
 from PyKDL import Frame, Rotation, Vector
-from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Wrench
+from geometry_msgs.msg import PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Quaternion
 from sensor_msgs.msg import Joy, JointState
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Empty
 from ros_abstraction_layer import ral
 import time
 import numpy as np
@@ -174,6 +174,11 @@ class MTM:
         effort_pub_topic_name = name + 'servo_jf'
         grav_comp_topic_name = name + 'use_gravity_compensation'
 
+        hold_topic_name = name + 'hold'
+        free_topic_name = name + 'free'
+        lock_orientation_topic_name = name + 'lock_orientation'
+        unlock_orientation_topic_name = name + 'unlock_orientation'
+
         self.cur_pos_msg = None
         self.pre_coag_pose_msg = None
 
@@ -202,27 +207,21 @@ class MTM:
         self.MEASURED_CP_MESSAGE_TYPE = PoseStamped
         self.SERVO_CP_MESSAGE_TYPE = PoseStamped
 
-        self._pose_sub = self.ral.subscriber(
-            pose_sub_topic_name, self.MEASURED_CP_MESSAGE_TYPE, self.pose_cb, queue_size=1)
-        self._state_sub = self.ral.subscriber(
-            joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
-        self._gripper_sub = self.ral.subscriber(
-            gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
-        self._twist_sub = self.ral.subscriber(
-            twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
-        self._clutch_button_sub = self.ral.subscriber(
-            clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
-        self._coag_button_sub = self.ral.subscriber(
-            coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
+        self._pose_sub = self.ral.subscriber(pose_sub_topic_name, self.MEASURED_CP_MESSAGE_TYPE, self.pose_cb, queue_size=1)
+        self._state_sub = self.ral.subscriber(joint_state_sub_topic_name, JointState, self.state_cb, queue_size=1)
+        self._gripper_sub = self.ral.subscriber(gripper_topic_name, JointState, self.gripper_cb, queue_size=1)
+        self._twist_sub = self.ral.subscriber(twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
+        self._clutch_button_sub = self.ral.subscriber(clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
+        self._coag_button_sub = self.ral.subscriber(coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
 
-        self._pos_pub = self.ral.publisher(
-            pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
-        self._wrench_pub = self.ral.publisher(
-            wrench_pub_topic_name, WrenchStamped, queue_size=1)
-        self._effort_pub = self.ral.publisher(
-            effort_pub_topic_name, JointState, queue_size=1)
-        self._gravity_comp_pub = self.ral.publisher(
-            grav_comp_topic_name, Bool, queue_size=1)
+        self._pos_pub = self.ral.publisher(pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
+        self._wrench_pub = self.ral.publisher(wrench_pub_topic_name, WrenchStamped, queue_size=1)
+        self._effort_pub = self.ral.publisher(effort_pub_topic_name, JointState, queue_size=1)
+        self._gravity_comp_pub = self.ral.publisher(grav_comp_topic_name, Bool, queue_size=1)
+        self._hold_pub = self.ral.publisher(hold_topic_name, Empty, queue_size=1)
+        self._free_pub = self.ral.publisher(free_topic_name, Empty, queue_size=1)
+        self._lock_orientation_pub = self.ral.publisher(lock_orientation_topic_name, Quaternion, queue_size=1)
+        self._unlock_orientation_pub = self.ral.publisher(unlock_orientation_topic_name, Empty, queue_size=1)
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -408,6 +407,29 @@ class MTM:
         msg = Bool()
         msg.data = False
         self._gravity_comp_pub.publish(msg)
+
+    def hold(self):
+        self._hold_pub.publish(Empty())
+
+    def free(self):
+        self._free_pub.publish(Empty())
+        self.unlock_orientation()
+
+    def free_with_orientation_lock(self):
+        curr_quat = self.pose.M.GetQuaternion()
+        self.free()
+        self.lock_orientation(curr_quat)
+
+    def lock_orientation(self, quat):
+        quat_msg = Quaternion()
+        quat_msg.x = quat[0]
+        quat_msg.y = quat[1]
+        quat_msg.z = quat[2]
+        quat_msg.w = quat[3]
+        self._lock_orientation_pub.publish(quat_msg)
+
+    def unlock_orientation(self):
+        self._unlock_orientation_pub.publish(Empty())
 
 
 def test():

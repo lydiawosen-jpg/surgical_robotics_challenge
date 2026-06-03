@@ -33,10 +33,12 @@ def load_selected_psm_arms(simulation_manager, cam, run_psm_one, run_psm_two, ru
 
 
 def apply_mtm_to_psm_command(leader, psm, T_c_b, update_dt, set_jaw_only_when_coag=False):
-    if leader.coag_button_pressed or leader.clutch_button_pressed:
-        leader.servo_cf(Wrench())
-    elif leader.is_active():
-        leader.servo_cp(leader.pre_coag_pose_msg)
+    if leader.clutch_button_pressed:
+        leader.free_with_orientation_lock()
+    elif leader.coag_button_pressed and not leader.clutch_button_pressed:
+        leader.free()
+    else:
+        leader.hold()
 
     twist = leader.measured_cv() * coordinate_frames.TeleopScale.scale_factor
     cmd_xyz = psm.T_t_b_home.p
