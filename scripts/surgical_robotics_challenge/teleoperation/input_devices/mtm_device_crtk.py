@@ -171,6 +171,8 @@ class MTM:
 
         pose_pub_topic_name = name + 'servo_cp'
         wrench_pub_topic_name = name + 'body/servo_cf'
+        set_wrench_orientation_absolute_topic_name = name + 'body/set_cf_orientation_absolute'
+
         effort_pub_topic_name = name + 'servo_jf'
         grav_comp_topic_name = name + 'use_gravity_compensation'
 
@@ -183,7 +185,6 @@ class MTM:
         self.pre_coag_pose_msg = None
 
         self._active = False
-        self._scale = 1.0
         self.pose = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         self.twist = PyKDL.Twist()
         R_off = Rotation.RPY(0, 0, 0)
@@ -216,12 +217,16 @@ class MTM:
 
         self._pos_pub = self.ral.publisher(pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
         self._wrench_pub = self.ral.publisher(wrench_pub_topic_name, WrenchStamped, queue_size=1)
+        self._set_orientation_absolute_pub = self.ral.publisher(set_wrench_orientation_absolute_topic_name, Bool, queue_size=1)
         self._effort_pub = self.ral.publisher(effort_pub_topic_name, JointState, queue_size=1)
         self._gravity_comp_pub = self.ral.publisher(grav_comp_topic_name, Bool, queue_size=1)
         self._hold_pub = self.ral.publisher(hold_topic_name, Empty, queue_size=1)
         self._free_pub = self.ral.publisher(free_topic_name, Empty, queue_size=1)
         self._lock_orientation_pub = self.ral.publisher(lock_orientation_topic_name, Quaternion, queue_size=1)
         self._unlock_orientation_pub = self.ral.publisher(unlock_orientation_topic_name, Empty, queue_size=1)
+
+        # Set the force command frame to be absolute (not relative to current orientation)
+        self._set_orientation_absolute_pub.publish(Bool(data=True))
 
         print('Creating MTM Device Named: ', name, ' From ROS Topics')
         self._msg_counter = 0
@@ -267,7 +272,8 @@ class MTM:
         tau_4 = Kp_4 * e * sign - Kd_4 * vs[3]
         tau_4 = np.clip(tau_4, -lim_4, lim_4)
 
-        tau_6 = -Kp_6 * qs[5] - Kd_6 * vs[5]
+        tau_6 = -Kp_6 * qs[5] - Kd_6 * vs[5]# Set the force command frame to be absolute (not relative to current orientation)
+        self._set_orientation_absolute_pub.publish(Bool(data=True))
         tau_6 = np.clip(tau_6, -lim_6, lim_6)
 
         js_cmd = [0.0]*7
@@ -279,12 +285,6 @@ class MTM:
         self._T_tipoffset = frame
         pass
 
-    def set_scale(self, scale):
-        self._scale = scale
-
-    def get_scale(self):
-        return self._scale
-
     def pose_cb(self, msg):
         self.cur_pos_msg = msg
         if self.pre_coag_pose_msg is None:
@@ -293,7 +293,6 @@ class MTM:
             cur_frame = pose_msg_to_kdl_frame(msg)
         elif type(msg) == TransformStamped:
             cur_frame = transform_msg_to_kdl_frame(msg)
-        cur_frame.p = cur_frame.p * self._scale
         self.pose = self._T_baseoffset_inverse * cur_frame * self._T_tipoffset
         # Mark active as soon as first message comes through
         self._active = True
@@ -329,7 +328,7 @@ class MTM:
         twist[3] = omega.angular.x
         twist[4] = omega.angular.y
         twist[5] = omega.angular.z
-        self.twist = self._T_baseoffset_inverse * twist
+        self.twist = self._T_baseoffset_inverse.M * twist
         pass
 
     def clutch_buttons_cb(self, msg):
@@ -375,7 +374,9 @@ class MTM:
         self._pos_pub.publish(servo_cp_msg)
 
     def servo_cf(self, wrench):
-        wrench = self._T_baseoffset_inverse * wrench
+        # Set the force command frame to be absolute (not relative to current orientation)
+        self._set_orientation_absolute_pub.publish(Bool(data=True))
+        # wrench = self._T_baseoffset_inverse.M * wrench
         wrench_msg = kdl_wrench_to_wrench_msg(wrench)
         self._wrench_pub.publish(wrench_msg)
 
