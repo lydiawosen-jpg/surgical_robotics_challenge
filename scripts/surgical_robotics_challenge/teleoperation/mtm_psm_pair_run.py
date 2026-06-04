@@ -175,7 +175,7 @@ if __name__ == "__main__":
     parser.add_argument('--two', action='store', dest='run_psm_two', help='Control PSM2', default=True)
     parser.add_argument('--three', action='store', dest='run_psm_three', help='Control PSM3', default=False)
     parser.add_argument('--update_frequency', action='store', dest='update_frequency', help='Update Frequency', default=200)
-    parser.add_argument('e', '--enable_force_feedback', action='store', dest='enable_force_feedback', help='Enable MTM force feedback', default=False)
+    parser.add_argument('-e', '--enable_force_feedback', action='store', dest='enable_force_feedback', help='Enable MTM force feedback', default=False)
 
     parsed_args = parser.parse_args()
     print('Specified Arguments')
