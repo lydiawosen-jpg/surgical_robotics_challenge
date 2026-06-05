@@ -43,12 +43,41 @@
 # */
 # //==============================================================================
 
+import os
+import yaml
 import PyKDL
 from enum import Enum
 from PyKDL import Frame, Rotation, Vector
+
+
+_HAPTICS_GAINS_DEFAULTS = {
+    'kp_pos': 120.0,
+    'kd_pos': 0.0,
+    'kp_rot': 0.0,
+    'kd_rot': 0.05,
+    'max_force': 2.0,
+    'max_torque': 0.0,
+    'linear_deadband': 0.001,
+    'angular_deadband': 0.01,
+}
+
+_HAPTICS_YAML = os.path.join(os.path.dirname(__file__), '..', 'mtm_haptics_gains.yaml')
+
+
+def load_haptics_gains(yaml_path=None):
+    path = yaml_path or _HAPTICS_YAML
+    defaults = dict(_HAPTICS_GAINS_DEFAULTS)
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+        if isinstance(data, dict) and 'haptics_gains' in data:
+            defaults.update({k: float(v) for k, v in data['haptics_gains'].items() if k in defaults})
+    except Exception as e:
+        print('[mtm_device_crtk] Warning: could not load haptics gains from {}: {}'.format(path, e))
+    return defaults
 from geometry_msgs.msg import PoseStamped, TransformStamped, TwistStamped, WrenchStamped, Quaternion
 from sensor_msgs.msg import Joy, JointState
-from std_msgs.msg import Bool, Empty
+from std_msgs.msg import Bool, Empty, Float32
 from ros_abstraction_layer import ral
 import time
 import numpy as np
@@ -175,6 +204,7 @@ class MTM:
         gripper_topic_name = name + 'gripper/measured_js'
         clutch_topic_name = '/console1/clutch'
         coag_topic_name = '/console1/operator_present'
+        camera_topic_name = '/console1/camera'
 
         pose_pub_topic_name = name + 'servo_cp'
         wrench_pub_topic_name = name + 'body/servo_cf'
@@ -188,6 +218,8 @@ class MTM:
         lock_orientation_topic_name = name + 'lock_orientation'
         unlock_orientation_topic_name = name + 'unlock_orientation'
 
+        haptics_gains_prefix = name + 'haptics/gains'
+
         self.cur_pos_msg = None
         self.pre_coag_pose_msg = None
 
@@ -200,11 +232,14 @@ class MTM:
         self._T_tipoffset = Frame(Rotation().RPY(0, 0, 0), Vector(0, 0, 0))
         self.clutch_button_pressed = False  # Used as Position Engage Clutch
         self.coag_button_pressed = False  # Used as Position Engage Coag
+        self.camera_button_pressed = False  # Used as Camera Control Button
         self.gripper_angle = 0
 
         self.switch_psm = False
         self._button_msg_time = self.ral.now()
         self._switch_psm_duration = self.ral.create_duration(0.5)
+
+        self._pose_error_wrench_params = load_haptics_gains()
 
         self._arm_publishing = False
         self._teleop_mode = TeleopMode.HOLD
@@ -222,6 +257,16 @@ class MTM:
         self._twist_sub = self.ral.subscriber(twist_topic_name, TwistStamped, self.twist_cb, queue_size=1)
         self._clutch_button_sub = self.ral.subscriber(clutch_topic_name, Joy, self.clutch_buttons_cb, queue_size=1)
         self._coag_button_sub = self.ral.subscriber(coag_topic_name, Joy, self.coag_buttons_cb, queue_size=1)
+        self._camera_button_sub = self.ral.subscriber(camera_topic_name, Joy, self.camera_buttons_cb, queue_size=1)
+
+        self._haptics_kp_pos_sub = self.ral.subscriber(haptics_gains_prefix + '/kp_pos', Float32, self._haptics_kp_pos_cb, queue_size=1)
+        self._haptics_kd_pos_sub = self.ral.subscriber(haptics_gains_prefix + '/kd_pos', Float32, self._haptics_kd_pos_cb, queue_size=1)
+        self._haptics_kp_rot_sub = self.ral.subscriber(haptics_gains_prefix + '/kp_rot', Float32, self._haptics_kp_rot_cb, queue_size=1)
+        self._haptics_kd_rot_sub = self.ral.subscriber(haptics_gains_prefix + '/kd_rot', Float32, self._haptics_kd_rot_cb, queue_size=1)
+        self._haptics_max_force_sub = self.ral.subscriber(haptics_gains_prefix + '/max_force', Float32, self._haptics_max_force_cb, queue_size=1)
+        self._haptics_max_torque_sub = self.ral.subscriber(haptics_gains_prefix + '/max_torque', Float32, self._haptics_max_torque_cb, queue_size=1)
+        self._haptics_linear_deadband_sub = self.ral.subscriber(haptics_gains_prefix + '/linear_deadband', Float32, self._haptics_linear_deadband_cb, queue_size=1)
+        self._haptics_angular_deadband_sub = self.ral.subscriber(haptics_gains_prefix + '/angular_deadband', Float32, self._haptics_angular_deadband_cb, queue_size=1)
 
         self._pos_pub = self.ral.publisher(pose_pub_topic_name, self.SERVO_CP_MESSAGE_TYPE, queue_size=1)
         self._wrench_pub = self.ral.publisher(wrench_pub_topic_name, WrenchStamped, queue_size=1)
@@ -352,6 +397,36 @@ class MTM:
     def coag_buttons_cb(self, msg):
         self.coag_button_pressed = msg.buttons[0]
         self.pre_coag_pose_msg = self.cur_pos_msg
+
+    def camera_buttons_cb(self, msg):
+        self.camera_button_pressed = msg.buttons[0]
+
+    def _haptics_kp_pos_cb(self, msg):
+        self._pose_error_wrench_params['kp_pos'] = float(msg.data)
+
+    def _haptics_kd_pos_cb(self, msg):
+        self._pose_error_wrench_params['kd_pos'] = float(msg.data)
+
+    def _haptics_kp_rot_cb(self, msg):
+        self._pose_error_wrench_params['kp_rot'] = float(msg.data)
+
+    def _haptics_kd_rot_cb(self, msg):
+        self._pose_error_wrench_params['kd_rot'] = float(msg.data)
+
+    def _haptics_max_force_cb(self, msg):
+        self._pose_error_wrench_params['max_force'] = float(msg.data)
+
+    def _haptics_max_torque_cb(self, msg):
+        self._pose_error_wrench_params['max_torque'] = float(msg.data)
+
+    def _haptics_linear_deadband_cb(self, msg):
+        self._pose_error_wrench_params['linear_deadband'] = float(msg.data)
+
+    def _haptics_angular_deadband_cb(self, msg):
+        self._pose_error_wrench_params['angular_deadband'] = float(msg.data)
+
+    def get_pose_error_wrench_params(self):
+        return dict(self._pose_error_wrench_params)
 
     def command_force(self, force):
         pass

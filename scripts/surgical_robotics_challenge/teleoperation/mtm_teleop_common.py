@@ -117,7 +117,13 @@ def apply_mtm_to_psm_command(
     servo_cp_target = T_ik if T_ik is not None else measured_psm_cp
 
     if enable_force_feedback and leader.get_teleop_mode() == TeleopMode.COAG:
-        wrench = compute_mtm_pose_error_wrench(measured_psm_cp, servo_cp_target, measured_cv)
+        wrench_kwargs = leader.get_pose_error_wrench_params()
+        wrench = compute_mtm_pose_error_wrench(
+            measured_psm_cp,
+            servo_cp_target,
+            measured_cv,
+            **wrench_kwargs,
+        )
         leader.servo_cf(T_c_b.M.Inverse() * wrench)
 
     if (not set_jaw_only_when_coag) or leader.get_teleop_mode() == TeleopMode.COAG:
