@@ -24,3 +24,5 @@ multibody configs:
   #3D MED STRAIGHT PHANTOM
   - "ADF/Phantoms/3D_MED_STRAIGHT/phantom.yaml" #12
   - "ADF/Phantoms/3D_MED_STRAIGHT/ghosts.yaml" #13
+  # Ring and wire environment
+  - "ADF/Phantoms/ring_wire_env/default.yaml" #14
