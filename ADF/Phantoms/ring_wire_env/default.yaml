@@ -17,7 +17,7 @@ BODY base:
     ix: 0.0
     iy: 0.0
     iz: 0.0
-  collision margin: 0.001
+  collision margin: 0.0001
   scale: 1.0
   location:
     position:
@@ -68,7 +68,7 @@ BODY big_ring_visual:
   mesh: big_ring_visual.OBJ
   collision mesh type: CONCAVE_MESH
   mass: 0.01
-  collision margin: 0.001
+  collision margin: 0.0001
   scale: 1.0
   location:
     position:
@@ -124,7 +124,7 @@ BODY CameraFrame:
     ix: 0.0
     iy: 0.0
     iz: 0.0
-  collision margin: 0.001
+  collision margin: 0.0001
   scale: 1.0
   location:
     position:
@@ -159,7 +159,7 @@ BODY wire_visual:
     ix: 0.0
     iy: 0.0
     iz: 0.0
-  collision margin: 0.001
+  collision margin: 0.0001
   scale: 1.0
   location:
     position:
