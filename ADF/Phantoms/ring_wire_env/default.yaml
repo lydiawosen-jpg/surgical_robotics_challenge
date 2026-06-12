@@ -102,7 +102,7 @@ BODY ring_visual:
   name: ring_visual
   mesh: ring_visual.OBJ
   collision mesh type: CONCAVE_MESH
-  mass: 0.01
+  mass: 0.1
   collision margin: 0.0001
   scale: 1.0
   location:
