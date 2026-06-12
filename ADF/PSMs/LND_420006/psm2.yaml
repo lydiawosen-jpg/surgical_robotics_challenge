@@ -322,7 +322,7 @@ BODY tool gripper left link:
   publish joint positions: false
   friction:
     rolling: 0.0
-    static: 2.0
+    static: 0.5
   restitution: 0.0
   damping:
     angular: 0.1000000015
@@ -387,7 +387,7 @@ BODY tool gripper right link:
   publish joint positions: false
   friction:
     rolling: 0.0
-    static: 2.0
+    static: 0.5
   restitution: 0.0
   damping:
     angular: 0.1000000015
