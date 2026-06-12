@@ -1,7 +1,7 @@
-# Blender 4.5.9 LTS MTL File: 'harder_test_physics_ring_wire.blend'
+# Blender 4.5.9 LTS MTL File: 'None'
 # www.blender.org
 
-newmtl Material.014
+newmtl Material.004
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800007 0.001207 0.352530
@@ -11,7 +11,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.015
+newmtl Material.005
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.173923 0.800007 0.028599
@@ -21,7 +21,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.020
+newmtl Material.006
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.036140 0.065998 0.800016
@@ -31,7 +31,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.021
+newmtl Material.007
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800007 0.688170 0.004274
@@ -41,7 +41,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.022
+newmtl Material.008
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.173563 0.723957 0.800007
@@ -51,7 +51,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.023
+newmtl Material.009
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.073661 0.800016 0.177511
@@ -61,7 +61,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.024
+newmtl Material.010
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800007 0.017336 0.043716
@@ -71,7 +71,7 @@ Ni 1.500000
 d 1.000000
 illum 2
 
-newmtl Material.025
+newmtl Material.012
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.305395 0.042271 0.800007
