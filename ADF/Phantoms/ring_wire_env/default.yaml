@@ -152,7 +152,6 @@ BODY ring_visual:
 BODY wire_visual:
   name: wire_visual
   mesh: wire_visual.OBJ
-  collision mesh: wire_collision_allchunks.OBJ
   collision mesh type: CONCAVE_MESH
   mass: 0.0
   inertia:
