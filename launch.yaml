@@ -28,3 +28,5 @@ multibody configs:
   - "ADF/Phantoms/Pegboards/pegboard_symmetric_with_wall.yaml" #14
   - "ADF/Phantoms/Pegboards/pegboard_asymmetric.yaml" #15
   - "ADF/Phantoms/Pegboards/camera_frame.yaml" #16
+  # Ring and wire environment
+  - "ADF/Phantoms/ring_wire_env/default.yaml" #14
